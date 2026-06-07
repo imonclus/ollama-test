@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Espacios Creativos con Ollama - IA Local</title>
+    <meta name="description" content="Plataforma interactiva que utiliza Ollama local para inspirar tu creatividad con juegos de rol, musas de escritura, generadores de mundos y oráculos interactivos." />
+    <!-- Google Fonts for modern premium typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <!-- Main Application Wrapper -->
+    <div class="app-layout">
+      
+      <!-- Sidebar Navigation -->
+      <aside class="sidebar">
+        <div class="sidebar-brand">
+          <div class="brand-logo">🔮</div>
+          <h1>Espacios Creativos</h1>
+        </div>
+
+        <div class="ollama-panel">
+          <div class="panel-header">
+            <h3>Conexión Ollama</h3>
+            <span id="status-indicator" class="status-badge checking">Comprobando...</span>
+          </div>
+          <div class="form-group">
+            <label for="model-selector">Modelo Activo</label>
+            <select id="model-selector" aria-label="Seleccionar modelo de Ollama">
+              <option value="">Cargando modelos...</option>
+            </select>
+          </div>
+        </div>
+
+        <nav class="sidebar-nav">
+          <button class="nav-item active" data-tab="adventure" id="tab-adventure" aria-label="Ir a Elige tu propia aventura">
+            <span class="nav-icon">🧭</span>
+            <span class="nav-text">Aventura Interactiva</span>
+          </button>
+          <button class="nav-item" data-tab="muse" id="tab-muse" aria-label="Ir a La Musa Creativa">
+            <span class="nav-icon">✨</span>
+            <span class="nav-text">La Musa Creativa</span>
+          </button>
+          <button class="nav-item" data-tab="worldbuilder" id="tab-worldbuilder" aria-label="Ir a Generador de Mundos">
+            <span class="nav-icon">⚔️</span>
+            <span class="nav-text">Forjador de Mundos</span>
+          </button>
+          <button class="nav-item" data-tab="oracle" id="tab-oracle" aria-label="Ir a El Oráculo Surrealista">
+            <span class="nav-icon">🧠</span>
+            <span class="nav-text">Oráculo Surrealista</span>
+          </button>
+        </nav>
+
+        <footer class="sidebar-footer">
+          <p>Potenciado por Ollama Local</p>
+        </footer>
+      </aside>
+
+      <!-- Main Content Area -->
+      <main class="main-content">
+        <!-- Notification container for toasts (Replaces native alerts) -->
+        <div id="toast-container" class="toast-container" aria-live="polite"></div>
+
+        <!-- TAB: ADVENTURE (Elige tu propia aventura) -->
+        <section id="pane-adventure" class="content-pane active">
+          <header class="pane-header">
+            <h2>🧭 Juego de Rol: Aventura Dinámica</h2>
+            <p>Define un escenario inicial y toma decisiones en tiempo real. La IA reaccionará dinámicamente a tus acciones.</p>
+          </header>
+
+          <div class="pane-body">
+            <!-- Setup Section -->
+            <div id="adv-setup-container" class="glass-card">
+              <h3>Elige el universo de tu aventura</h3>
+              <div class="grid-presets">
+                <button class="preset-card active" data-preset="cyberpunk" id="preset-adv-cyber">
+                  <div class="preset-icon">🏙️</div>
+                  <h4>Neón y Sombras</h4>
+                  <p>Un detective privado en una megalópolis decadente buscando un chip de datos robado.</p>
+                </button>
+                <button class="preset-card" data-preset="fantasy" id="preset-adv-fantasy">
+                  <div class="preset-icon">🐉</div>
+                  <h4>Taberna del Dragón</h4>
+                  <p>Un aventurero en una remota taberna de montaña que escucha un rumor sobre un templo sumergido.</p>
+                </button>
+                <button class="preset-card" data-preset="space" id="preset-adv-space">
+                  <div class="preset-icon">🚀</div>
+                  <h4>Vórtice Perdido</h4>
+                  <p>Piloto de una nave de reconocimiento que acaba de salir del hiperespacio frente a una nave abandonada.</p>
+                </button>
+                <button class="preset-card" data-preset="custom" id="preset-adv-custom">
+                  <div class="preset-icon">✏️</div>
+                  <h4>Personalizado</h4>
+                  <p>Escribe tu propio punto de partida para que la IA dé vida a tu imaginación.</p>
+                </button>
+              </div>
+
+              <div id="adv-custom-input-group" class="form-group custom-scenario-group hidden">
+                <label for="adv-custom-scenario">Escenario inicial personalizado</label>
+                <textarea id="adv-custom-scenario" placeholder="Ej: Eres un arqueólogo en 1920 que acaba de descifrar la entrada a una tumba secreta bajo las arenas de Giza..."></textarea>
+              </div>
+
+              <div class="action-footer">
+                <button id="adv-start-btn" class="btn btn-primary">Iniciar Aventura</button>
+              </div>
+            </div>
+
+            <!-- Game Log Area (hidden by default) -->
+            <div id="adv-game-container" class="game-container hidden">
+              <div class="glass-card log-card">
+                <div id="adv-story-log" class="story-log" role="log">
+                  <!-- Story blocks go here -->
+                </div>
+              </div>
+
+              <div class="input-card glass-card">
+                <div class="action-input-row">
+                  <textarea id="adv-action-input" placeholder="¿Qué quieres hacer ahora? (Ej. Inspeccionar los paneles de control de la nave, hablar con el tabernero...)"></textarea>
+                  <button id="adv-send-btn" class="btn btn-primary">
+                    <span class="btn-text">Enviar Acción</span>
+                    <span class="spinner hidden"></span>
+                  </button>
+                  <button id="adv-cancel-btn" class="btn btn-secondary hidden">Cancelar</button>
+                </div>
+                <div class="action-options" style="display: flex; gap: 0.75rem; justify-content: flex-end;">
+                  <button id="adv-copy-btn" class="btn btn-secondary">Copiar Historia</button>
+                  <button id="adv-reset-btn" class="btn btn-secondary">Terminar Aventura</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- TAB: MUSE (La Musa Creativa) -->
+        <section id="pane-muse" class="content-pane">
+          <header class="pane-header">
+            <h2>✨ La Musa Creativa</h2>
+            <p>Escribe tus ideas y utiliza herramientas de inteligencia artificial para romper el bloqueo de escritor.</p>
+          </header>
+
+          <div class="pane-body split-layout">
+            <!-- Left Side: Main Text Editor -->
+            <div class="editor-section glass-card" style="display: flex; flex-direction: column; gap: 1rem;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                <h3 style="margin-bottom: 0; border-left: 3px solid var(--accent); padding-left: 0.75rem;">Lienzo de Escritura</h3>
+                <button id="muse-copy-canvas-btn" class="btn btn-secondary btn-sm">Copiar Lienzo</button>
+              </div>
+              <textarea id="muse-text-editor" placeholder="Comienza a escribir tu historia, poema o idea aquí... Selecciona un texto o presiona una herramienta a la derecha para inspirarte." style="flex-grow: 1;"></textarea>
+              <div class="editor-stats">
+                <span id="muse-char-count">0 caracteres</span>
+              </div>
+            </div>
+
+            <!-- Right Side: Writing Assistants -->
+            <div class="tools-section">
+              <div class="glass-card">
+                <h3>Herramientas de Inspiración</h3>
+                <p class="tool-tip">Las acciones se aplicarán a tu texto actual o a las ideas de abajo.</p>
+                
+                <div class="tool-buttons">
+                  <button id="muse-expand-btn" class="btn btn-tool">
+                    <span class="tool-icon">📈</span>
+                    <div class="tool-details">
+                      <strong>Expandir Texto</strong>
+                      <span>Añade descripciones vívidas y detalles al escrito.</span>
+                    </div>
+                  </button>
+
+                  <button id="muse-twist-btn" class="btn btn-tool">
+                    <span class="tool-icon">⚡</span>
+                    <div class="tool-details">
+                      <strong>Giro Inesperado</strong>
+                      <span>Introduce un conflicto repentino o revelación.</span>
+                    </div>
+                  </button>
+
+                  <div class="tool-panel-row">
+                    <div class="form-group select-group">
+                      <label for="muse-tone">Estilo/Tono</label>
+                      <select id="muse-tone" aria-label="Seleccionar tono para reescribir">
+                        <option value="oscuro">Oscuro y Gótico</option>
+                        <option value="cyberpunk">Cyberpunk Tecnológico</option>
+                        <option value="poetico">Lírico y Poético</option>
+                        <option value="comico">Irónico y Cómico</option>
+                      </select>
+                    </div>
+                    <button id="muse-tone-btn" class="btn btn-tool-action">Reescribir</button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Output/Suggestions Panel -->
+              <div id="muse-suggestion-card" class="glass-card suggestion-card hidden">
+                <div class="suggestion-header">
+                  <h3>Sugerencia de la Musa</h3>
+                  <div style="display: flex; gap: 0.5rem; align-items: center;">
+                    <span class="muse-spinner hidden"></span>
+                    <button id="muse-cancel-btn" class="btn btn-secondary btn-sm hidden">Cancelar</button>
+                  </div>
+                </div>
+                <div id="muse-result-text" class="suggestion-content">
+                  <!-- AI result goes here -->
+                </div>
+                <div class="suggestion-footer">
+                  <button id="muse-apply-btn" class="btn btn-primary btn-sm">Reemplazar/Insertar</button>
+                  <button id="muse-copy-btn" class="btn btn-secondary btn-sm">Copiar</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- TAB: WORLDBUILDER (Forjador de Mundos) -->
+        <section id="pane-worldbuilder" class="content-pane">
+          <header class="pane-header">
+            <h2>⚔️ Forjador de Mundos</h2>
+            <p>Genera elementos de lore instantáneos para tus campañas de rol o novelas: ciudades, personajes y artefactos.</p>
+          </header>
+
+          <div class="pane-body">
+            <div class="glass-card">
+              <h3>Configuración de la Forja</h3>
+              <div class="grid-form">
+                <div class="form-group">
+                  <label for="wb-type">Elemento a Generar</label>
+                  <select id="wb-type">
+                    <option value="ciudad">Ciudad o Reino</option>
+                    <option value="personaje">Personaje Singular</option>
+                    <option value="objeto">Reliquia u Objeto Arcano</option>
+                    <option value="faccion">Facción o Secta Secreta</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label for="wb-genre">Género literario</label>
+                  <select id="wb-genre">
+                    <option value="fantasia">Fantasía Épica / Medieval</option>
+                    <option value="cyberpunk">Sci-Fi Cyberpunk</option>
+                    <option value="gotico">Gótico / Terror Victoriano</option>
+                    <option value="postapoc">Post-Apocalíptico Desértico</option>
+                  </select>
+                </div>
+
+                <div class="form-group full-width">
+                  <label for="wb-context">Detalle Adicional o Idea Clave (Opcional)</label>
+                  <input type="text" id="wb-context" placeholder="Ej. construida en un abismo, con un brazo mecánico, maldita por un dios..." />
+                </div>
+              </div>
+
+              <div class="action-footer">
+                <button id="wb-generate-btn" class="btn btn-primary">
+                  <span class="btn-text">Forjar Elemento</span>
+                  <span class="spinner hidden"></span>
+                </button>
+                <button id="wb-cancel-btn" class="btn btn-secondary hidden">Cancelar</button>
+              </div>
+            </div>
+
+            <!-- Result Card -->
+            <div id="wb-result-card" class="glass-card result-card hidden">
+              <div class="result-header">
+                <h3 id="wb-result-title">Elemento Creado</h3>
+                <button id="wb-copy-btn" class="btn btn-secondary btn-sm">Copiar Lore</button>
+              </div>
+              <div id="wb-result-body" class="result-content">
+                <!-- Generated Markdown content goes here -->
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- TAB: ORACLE (El Oráculo Surrealista) -->
+        <section id="pane-oracle" class="content-pane">
+          <header class="pane-header">
+            <h2>🧠 El Oráculo Surrealista</h2>
+            <p>Conversa con personalidades atípicas y creativas impulsadas por inteligencia artificial.</p>
+          </header>
+
+          <div class="pane-body">
+            <div class="chat-wrapper">
+              <!-- Sidebar configuration of Oracle -->
+              <div class="chat-config-panel glass-card">
+                <h3>Configuración de la Entidad</h3>
+                <div class="form-group">
+                  <label for="oracle-persona">Elige el Oráculo</label>
+                  <select id="oracle-persona">
+                    <option value="alchemist">🧪 Alquimista Hermético</option>
+                    <option value="cyborg">🦾 Cyborg Existencialista (Año 3099)</option>
+                    <option value="delphi">🔮 Oráculo de Delfos Digital</option>
+                    <option value="cynic">🍷 Filósofo Cínico</option>
+                  </select>
+                </div>
+                <div class="persona-description">
+                  <p id="persona-desc-text">Un sabio de la antigüedad transmutado que habla mediante símbolos herméticos y secretos de la naturaleza.</p>
+                </div>
+                <div class="panel-actions" style="display: flex; flex-direction: column; gap: 0.5rem;">
+                  <button id="oracle-copy-btn" class="btn btn-primary btn-full">Copiar Conversación</button>
+                  <button id="oracle-clear-btn" class="btn btn-secondary btn-full">Reiniciar Conversación</button>
+                </div>
+              </div>
+
+              <!-- Main Chat Screen -->
+              <div class="chat-box glass-card">
+                <div id="oracle-chat-log" class="chat-log" role="log">
+                  <!-- Messages go here dynamically -->
+                </div>
+                
+                <div class="chat-input-row">
+                  <textarea id="oracle-chat-input" placeholder="Hazle una pregunta trascendental al Oráculo..."></textarea>
+                  <button id="oracle-chat-btn" class="btn btn-primary">
+                    <span class="btn-text">Preguntar</span>
+                    <span class="spinner hidden"></span>
+                  </button>
+                  <button id="oracle-cancel-btn" class="btn btn-secondary hidden">Cancelar</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+    
+    <script src="script.js"></script>
+  </body>
+</html>
