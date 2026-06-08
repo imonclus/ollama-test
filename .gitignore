@@ -1,2 +1,6 @@
 # Lanzador local de Windows
 iniciar_espacios_creativos_ollama.bat
+
+# Archivos y carpetas de Python
+__pycache__/
+venv/
